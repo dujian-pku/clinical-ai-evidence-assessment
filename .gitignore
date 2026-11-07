@@ -1,0 +1,12 @@
+node_modules/
+.pnpm-store/
+dist/
+outputs/
+.wrangler/
+.npm-cache/
+.env*
+.dev.vars*
+*.pem
+*key*.txt
+*.tsbuildinfo
+.DS_Store
