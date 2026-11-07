@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { handleReport } from '../api/report-handler.ts';
 import { researchExample } from '../lib/research-examples.ts';
 
-const env = { DEEPSEEK_API_KEY: 'test-server-secret', REPORT_ACCESS_CODE: 'test-access-code', ALLOWED_ORIGINS: 'https://xuanyshi.github.io' };
+const env = { DEEPSEEK_API_KEY: 'test-server-secret', REPORT_ACCESS_CODE: 'test-access-code', ALLOWED_ORIGINS: 'https://dujian-pku.github.io' };
 let requestNumber = 0;
 function request(overrides: RequestInit = {}, headers: Record<string, string> = {}) {
   return new Request('https://worker.example/api/report', { method: 'POST', body: JSON.stringify(researchExample('37029272')), ...overrides,
@@ -16,7 +16,7 @@ test('报告接口仅允许指定来源，预检允许访问码请求头', async
   assert.equal(accepted.status, 204);
   assert.equal(accepted.headers.get('access-control-allow-origin'), env.ALLOWED_ORIGINS);
   assert.match(accepted.headers.get('access-control-allow-headers')!, /Authorization/);
-  for (const origin of ['', 'https://xuanyshi.github.io.evil.example', 'https://example.com']) {
+  for (const origin of ['', 'https://dujian-pku.github.io.evil.example', 'https://example.com']) {
     const denied = await handleReport(request({}, { origin }), env);
     assert.equal(denied.status, 403);
     assert.equal(denied.headers.get('access-control-allow-origin'), null);
