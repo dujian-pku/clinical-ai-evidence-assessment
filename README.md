@@ -4,6 +4,8 @@
 
 [在线工具](https://dujian-pku.github.io/clinical-ai-evidence-assessment/) · [GitHub 仓库](https://github.com/dujian-pku/clinical-ai-evidence-assessment)
 
+页面采用黑白配色、直角边框和紧凑布局。桌面宽屏的基本信息按三列排列；输入字号为 19 px，报告正文为 20 px，重点内容使用灰底加粗与下划线。
+
 ## 开发与验证
 
 使用 Node.js 24、pnpm 11.25.0。
