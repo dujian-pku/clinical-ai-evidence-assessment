@@ -1,6 +1,6 @@
 # 医学 AI 研究快速评估
 
-适用于 CJ01 临床决策辅助场景。网页由 GitHub Pages 托管，完整报告由 Sites 报告接口调用 DeepSeek 生成。保留研究填写、确定性评分、真实研究示例、自然段评述、关键内容高亮、草稿保存和 TXT 导出。
+适用于 CJ01 临床决策辅助场景。网页静态版本由 GitHub Pages 托管。面向中国大陆访问的正式服务器尚待确定，完整报告接口暂未接入。保留研究填写、确定性评分、真实研究示例、自然段评述、关键内容高亮、草稿保存和 TXT 导出。
 
 ## 开发与验证
 
@@ -15,12 +15,23 @@ pnpm dev
 
 `VITE_REPORT_API_URL` 是报告接口的公开 URL，例如 `https://<worker>.workers.dev/api/report`。`PAGES_BASE_PATH` 是 Pages 项目路径，例如 `/clinical-ai-evidence-assessment/`。两个配置都不包含密钥。
 
-## 报告接口
-服务端使用 Sites 托管，无需使用者注册或登录 Cloudflare。入口源码为 `api/worker.ts`，提供 `/api/report` 和 `/health`。执行 `pnpm build:api` 生成独立 Worker ESM 文件，发布时由同项目 `../report-service` 的 Sites 工作目录打包。
+## 服务器部署
+面向国内使用，可以把网页与报告接口部署到同一台 Linux 服务器；也可以保留 GitHub Pages 网页，单独部署接口。当前不使用 Sites 或用户自有 Cloudflare 服务。
 
-服务端秘密变量为 `DEEPSEEK_API_KEY` 和 `REPORT_ACCESS_CODE`。前者仅供服务端调用 DeepSeek，后者由使用者在网页填写，只保存在当前页面内存，不随草稿或 TXT 保存。允许来源 `ALLOWED_ORIGINS` 设为 `https://xuanyshi.github.io`。浏览器只发送填写内容和访问码，不接收 DeepSeek Key。
+```sh
+pnpm install --frozen-lockfile
+pnpm test
+pnpm build:server
+cp deploy/environment.example .env.production
+# 由服务器管理员填写 .env.production 中的秘密变量和网页来源。
+pnpm start
+```
 
-接口校验来源、访问码、填写内容及请求大小，按单个实例内的 IP 记录限制每分钟 6 次调用。该计数不构成跨实例的全局额度控制；账户费用按 DeepSeek 后台记录管理。
+需要 Node.js 24。默认在 127.0.0.1:3000 提供网页和接口，正式使用由服务器反向代理提供 HTTPS。应用入口为 `scripts/start-server.mjs`。页面通过同源 `/api/report` 调用服务，`/health` 可检查进程状态。若只部署接口，可跳过 `build:server`，并把 GitHub Actions 变量 `REPORT_API_URL` 设为服务器的完整 HTTPS 接口地址。
+
+秘密变量为 `DEEPSEEK_API_KEY` 和 `REPORT_ACCESS_CODE`。前者仅供服务端调用 DeepSeek，后者由使用者在网页填写，只保存在当前页面内存，不随草稿或 TXT 保存。`ALLOWED_ORIGINS` 填入网页的实际来源，例如 `https://xuanyshi.github.io` 或部署后的域名；多个来源使用英文逗号分隔。
+
+接口校验来源、访问码、填写内容及请求大小，按单个实例内的连接 IP 记录限制每分钟 6 次调用。反向代理部署时，此计数按代理连接统计；更多并发需求可在反向代理层配置按访客 IP 的限流。账户费用按 DeepSeek 后台记录管理。
 
 ## GitHub Pages
 
@@ -40,4 +51,4 @@ pnpm dev
 - 真实示例为口咽癌包膜外侵犯预测（PMID:37087370）和颅内出血 CT 辅助诊断（PMID:37029272），出处和提取范围见页面及 `lib/research-examples.ts`。
 - 完整报告沿用 DeepSeek Flash 思考模式。服务端仅返回最终正文与高亮，正文约 500–800 汉字，通常 4–5 段。
 
-本版本从同项目的 Sites 版本迁移，独立维护 GitHub Pages 前端和 Sites 接口。原 Sites 地址在迁移期间保持可用。
+本版本从同项目原网页迁移。源码不依赖 Sites；Node.js 服务可部署到单位服务器或云服务器。GitHub Pages 静态发布成功不代表完整报告接口已经上线。

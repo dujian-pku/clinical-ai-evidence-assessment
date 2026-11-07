@@ -4,7 +4,7 @@ import { ArrowDownToLine, ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, Check, 
 import { type Assessment, type Report, RULE_VERSION, calculate, decodeAssessment, dimensions, emptyAssessment, factualReport, metrics, outcomes, scenes, scoreNotes, statuses, users, validate } from '../lib/assessment';
 import { exampleSource, researchExample, researchExamples, sourceCitation } from '../lib/research-examples';
 import { reportReferences } from '../lib/report';
-import { reportEndpoint } from '../lib/report-client';
+import { reportEndpoint, reportServiceConfigured } from '../lib/report-client';
 
 const storageKey = 'clinical-ai-assessment-v1';
 function reportText(text: string) {
@@ -221,10 +221,10 @@ export default function Home() {
             </div>
             <details className="coverage" open><summary>维度得分 <ChevronDown size={17}/></summary><div>{dimensions.map(d => <div className="coverage-row" key={d.key}><span className={'coverage-dot ' + (data.states[d.key] === '已报告' ? 'is-reported' : data.states[d.key] ? 'is-filled' : '')}/><span>{d.name}</span><span>{data.states[d.key] ? data.states[d.key] === '已报告' ? d.weight.toFixed(2) : '0.00' : '—'}</span></div>)}</div></details>
             <div className="generate-area">
-              <label className="report-access" htmlFor="report-access-code">报告访问码<input id="report-access-code" type="password" autoComplete="off" value={accessCode} onChange={event => setAccessCode(event.target.value)} placeholder="填写后生成完整报告" /></label>
-              <button className="primary" onClick={generate} disabled={pending}>{pending ? <LoaderCircle className="spin" size={19}/> : <FileText size={19}/>} {pending ? '正在生成报告…' : '生成评估报告'}{!pending && <ArrowUpRight size={19}/>}</button>
+              {reportServiceConfigured && <label className="report-access" htmlFor="report-access-code">报告访问码<input id="report-access-code" type="password" autoComplete="off" value={accessCode} onChange={event => setAccessCode(event.target.value)} placeholder="填写后生成完整报告" /></label>}
+              <button className="primary" onClick={generate} disabled={pending || !reportServiceConfigured}>{pending ? <LoaderCircle className="spin" size={19}/> : <FileText size={19}/>} {pending ? '正在生成报告…' : '生成评估报告'}{!pending && <ArrowUpRight size={19}/>}</button>
               <button className="secondary-report" onClick={localReport} disabled={pending}>生成简版报告</button>
-              <p className="data-note">填写内容将发送至 DeepSeek。</p>
+              <p className="data-note">{reportServiceConfigured ? '填写内容将发送至 DeepSeek。' : '完整报告服务待接入，当前可使用简版报告。'}</p>
               {errors.length > 0 && <div role="alert" className="errors"><p>{errors[0]}</p>{errors.length > 1 && <details><summary>另有 {errors.length - 1} 项待填写</summary>{errors.slice(1).map((error, i) => <p key={i}>{error}</p>)}</details>}</div>}
             </div>
           </div>
