@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
-import { ArrowDownToLine, ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, Check, ChevronDown, FileText, FolderOpen, LoaderCircle, Network, RotateCcw, Save } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, Check, ChevronDown, FileText, FolderOpen, LoaderCircle, RotateCcw, Save } from 'lucide-react';
 import { type Assessment, type Report, RULE_VERSION, calculate, decodeAssessment, dimensions, emptyAssessment, factualReport, metrics, outcomes, scenes, scoreNotes, statuses, users, validate } from '../lib/assessment';
 import { exampleSource, researchExample, researchExamples, sourceCitation } from '../lib/research-examples';
 import { reportReferences } from '../lib/report';
@@ -116,7 +116,11 @@ export default function Home() {
   }
   return <div className="page-shell">
     <header className="topbar">
-      <a href="#" className="brand"><span className="brand-mark"><Network size={25} strokeWidth={1.5}/></span><span>医学 AI 证据评估<span className="brand-en">CLINICAL AI EVIDENCE</span></span></a>
+      <div className="institution-logos" aria-label="机构标识">
+        <a className="institution-logo institution-pku" href="https://www.pku.edu.cn/" target="_blank" rel="noreferrer"><img src={`${import.meta.env.BASE_URL}assets/branding/pku.png`} width="852" height="240" alt="北京大学" /></a>
+        <a className="institution-logo institution-pkuhsc" href="https://www.bjmu.edu.cn/" target="_blank" rel="noreferrer"><img src={`${import.meta.env.BASE_URL}assets/branding/pku-health-science-center.svg`} width="263" height="44" alt="北京大学医学部" /></a>
+        <a className="institution-logo institution-nihds" href="https://www.nihds.pku.edu.cn/" target="_blank" rel="noreferrer"><img src={`${import.meta.env.BASE_URL}assets/branding/nihds.png`} width="647" height="83" alt="北京大学健康医疗大数据国家研究院" /></a>
+      </div>
       <nav className="topnav" aria-label="主导航">
         <a href="#assessment" className="nav-current">研究评估</a>
         <a href="#method" onClick={() => setRulesOpen(true)}>评分方法 <ArrowUpRight size={16}/></a>
@@ -126,7 +130,7 @@ export default function Home() {
     <main className="workspace">
       <section className="page-heading">
         <div><p className="eyebrow">RESEARCH ASSESSMENT</p><h1>医学 AI 研究快速评估</h1><p className="lead">录入研究证据，查看评分与评估报告。</p></div>
-        <div className="scope-label"><span className="scope-dot"/>临床决策辅助<span className="scope-code">CJ01</span></div>
+        <div className="scope-label"><span className="scope-dot"/>临床决策辅助</div>
       </section>
 
       <div className="columns" id="assessment">
@@ -201,8 +205,8 @@ export default function Home() {
             </div>
           </div>
 
-          <section className="method-panel" id="method"><button className="method-toggle" aria-expanded={rulesOpen} aria-controls="method-content" onClick={() => setRulesOpen(!rulesOpen)}><span><FileText size={19}/> 评分方法</span><span className="method-meta">CJ01 <ChevronDown className={rulesOpen ? 'rotated' : ''} size={18}/></span></button>{rulesOpen && <div className="method-content" id="method-content">
-            <p>【适用场景】临床决策辅助。权重来自 12 位专家对 CJ01 场景的评价。</p>
+          <section className="method-panel" id="method"><button className="method-toggle" aria-expanded={rulesOpen} aria-controls="method-content" onClick={() => setRulesOpen(!rulesOpen)}><span><FileText size={19}/> 评分方法</span><span className="method-meta"><ChevronDown className={rulesOpen ? 'rotated' : ''} size={18}/></span></button>{rulesOpen && <div className="method-content" id="method-content">
+            <p>【适用场景】临床决策辅助。权重来自 12 位专家对该场景的评价。</p>
             <p>【证据完整性】将七个维度中已报告项的权重相加。未报告和不适用均计 0 分，满分为 5 分。安全性若选不适用，最高可得 3.20 分。</p>
             <p>【模型效果】（综合评价分＋主要性能数值×5＋患者报告结局分）÷3。综合评价与患者报告结局：改善 5 分、等效 3 分、劣势 0 分、未报告 3 分。性能未报告计 0 分，仍按三项平均。</p>
             <p>【结果判定】改善须有适当对照，且达到预设的有意义改善；等效须有预设等效界值及相应区间支持。未报告与等效分值相同，含义不同。性能指标预先选定一项。</p>
@@ -237,11 +241,11 @@ export default function Home() {
         {data.demo && <p className="demo-report">【虚构演示数据】</p>}
         <div className="report-metrics"><span>证据完整性 <strong>{score.evidence?.toFixed(2)} <small>/ 5</small></strong></span><span>模型效果 <strong>{score.effect?.toFixed(2)} <small>/ 5</small></strong></span></div>
         <div className="report-body">{report.paragraphs.map((paragraph, i) => <p key={i}>{highlightedReportText(paragraph, (report.highlights || []).filter(h => h.paragraph === i).map(h => h.text))}</p>)}</div>
-        <details className="report-method"><summary>评分说明与评价方法 <ChevronDown size={16}/></summary><p>{scoreNotes(data) || '两项分数分别反映本次填报的报告覆盖情况与模型效果，按 CJ01 原表计算。'}</p><p>评述参考研究报告方法，计分沿用项目原表。</p><div>{reportReferences.map(reference => <a key={reference.url} href={reference.url} target="_blank" rel="noreferrer">{reference.title} <ArrowUpRight size={15}/></a>)}</div></details>
+        <details className="report-method"><summary>评分说明与评价方法 <ChevronDown size={16}/></summary><p>{scoreNotes(data) || '两项分数分别反映本次填报的报告覆盖情况与模型效果，按临床决策辅助评分表计算。'}</p><p>评述参考研究报告方法，计分沿用项目原表。</p><div>{reportReferences.map(reference => <a key={reference.url} href={reference.url} target="_blank" rel="noreferrer">{reference.title} <ArrowUpRight size={15}/></a>)}</div></details>
         {source && <div className="report-source"><p>示例来源：<a href={source.url} target="_blank" rel="noreferrer">{source.title} · {source.journal} <ArrowUpRight size={16}/></a>{source.changed ? '（当前填写已修改）' : ''}</p></div>}
       </section>}
 
-      <footer className="footer"><span>医学 AI 研究快速评估</span><span>临床决策辅助 · CJ01</span></footer>
+      <footer className="footer"><span>医学 AI 研究快速评估</span><span>临床决策辅助</span></footer>
     </main>
   </div>;
 }

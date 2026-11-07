@@ -1,4 +1,4 @@
-export const RULE_VERSION = 'CJ01-Excel-20261107';
+export const RULE_VERSION = '临床决策辅助（2026-11-07）';
 export const dimensions = [
   { key: 'safety', name: '安全性', weight: 1.8, description: '错误与伤害、诊疗延误、不适当检查或用药、不良事件。' },
   { key: 'effectiveness', name: '有效性', weight: 1.25, description: '综合表现、性能指标、流程质量、患者报告结局及临床终点。' },
