@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
-import { ArrowDownToLine, ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, Check, ChevronDown, FileText, FolderOpen, LoaderCircle, RotateCcw, Save } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeft, ArrowRight, BookOpen, Check, ChevronDown, FileText, FolderOpen, LoaderCircle, RotateCcw, Save } from 'lucide-react';
 import { type Assessment, type Report, RULE_VERSION, calculate, decodeAssessment, dimensions, emptyAssessment, factualReport, metrics, outcomes, scenes, scoreNotes, statuses, users, validate } from '../lib/assessment';
 import { exampleSource, researchExample, researchExamples, sourceCitation } from '../lib/research-examples';
 import { reportReferences } from '../lib/report';
@@ -123,8 +123,8 @@ export default function Home() {
       </div>
       <nav className="topnav" aria-label="主导航">
         <a href="#assessment" className="nav-current">研究评估</a>
-        <a href="#method" onClick={() => setRulesOpen(true)}>评分方法 <ArrowUpRight size={16}/></a>
-        {report && <a href="#report">评估报告 <ArrowUpRight size={16}/></a>}
+        <a href="#method" onClick={() => setRulesOpen(true)}>评分方法</a>
+        {report && <a href="#report">评估报告</a>}
       </nav>
     </header>
     <main className="workspace">
@@ -138,7 +138,7 @@ export default function Home() {
           <div className="editor-tools">
             <details className="examples-picker" ref={examplesRef}>
               <summary><BookOpen size={19}/> 载入研究示例 <ChevronDown size={17}/></summary>
-              <div className="example-menu"><p>已发表研究</p>{researchExamples.map(item => <button key={item.id} aria-label={item.label} onClick={() => loadExample(item.id)}><span><strong>{item.title}</strong><small>{item.journal}</small></span><ArrowUpRight size={18}/></button>)}</div>
+              <div className="example-menu"><p>已发表研究</p>{researchExamples.map(item => <button key={item.id} aria-label={item.label} onClick={() => loadExample(item.id)}><span><strong>{item.title}</strong><small>{item.journal}</small></span></button>)}</div>
             </details>
             <div className="draft-actions">
               <button onClick={restore}><FolderOpen size={18}/> 读取草稿</button>
@@ -148,10 +148,10 @@ export default function Home() {
           </div>
           {resetting && <div className="notice">清空当前填写内容？<button onClick={clear}>确认清空</button><button onClick={() => setResetting(false)}>取消</button></div>}
           {message && <div role="status" className="notice"><Check size={17}/>{message}</div>}
-          {data.demo && <div className="demo-banner">【虚构示例 {data.demo.toUpperCase()}】<button onClick={clear}>新建研究 <ArrowUpRight size={16}/></button></div>}
+          {data.demo && <div className="demo-banner">【虚构示例 {data.demo.toUpperCase()}】<button onClick={clear}>新建研究</button></div>}
           {source && <section className="study-source" aria-label="研究示例来源">
-            <div className="source-heading"><div><p className="source-meta">{source.journal}{source.changed && <span className="edited-tag">已修改</span>}</p><h2>{source.title}</h2></div><a href={source.url} target="_blank" rel="noreferrer">查看论文 <ArrowUpRight size={17}/></a></div>
-            <details><summary>研究概况与填表依据 <ChevronDown size={16}/></summary><p>{source.summary}</p><p>{source.scope}</p><a href={source.pubmed} target="_blank" rel="noreferrer">PMID:{source.id} · 证据库第 {source.record} 项 <ArrowUpRight size={15}/></a></details>
+            <div className="source-heading"><div><p className="source-meta">{source.journal}{source.changed && <span className="edited-tag">已修改</span>}</p><h2>{source.title}</h2></div><a href={source.url} target="_blank" rel="noreferrer">查看论文</a></div>
+            <details><summary>研究概况与填表依据 <ChevronDown size={16}/></summary><p>{source.summary}</p><p>{source.scope}</p><a href={source.pubmed} target="_blank" rel="noreferrer">PMID:{source.id} · 证据库第 {source.record} 项</a></details>
           </section>}
 
           <div className="editor-card" ref={editorRef}>
@@ -226,7 +226,7 @@ export default function Home() {
             <details className="coverage" open><summary>维度得分 <ChevronDown size={17}/></summary><div>{dimensions.map(d => <div className="coverage-row" key={d.key}><span className={'coverage-dot ' + (data.states[d.key] === '已报告' ? 'is-reported' : data.states[d.key] ? 'is-filled' : '')}/><span>{d.name}</span><span>{data.states[d.key] ? data.states[d.key] === '已报告' ? d.weight.toFixed(2) : '0.00' : '—'}</span></div>)}</div></details>
             <div className="generate-area">
               {reportServiceConfigured && <label className="report-access" htmlFor="report-access-code">报告访问码<input id="report-access-code" type="password" autoComplete="off" value={accessCode} onChange={event => setAccessCode(event.target.value)} placeholder="填写后生成完整报告" /></label>}
-              <button className="primary" onClick={generate} disabled={pending || !reportServiceConfigured}>{pending ? <LoaderCircle className="spin" size={19}/> : <FileText size={19}/>} {pending ? '正在生成报告…' : '生成评估报告'}{!pending && <ArrowUpRight size={19}/>}</button>
+              <button className="primary" onClick={generate} disabled={pending || !reportServiceConfigured}>{pending ? <LoaderCircle className="spin" size={19}/> : <FileText size={19}/>} {pending ? '正在生成报告…' : '生成评估报告'}</button>
               <button className="secondary-report" onClick={localReport} disabled={pending}>生成简版报告</button>
               <p className="data-note">{reportServiceConfigured ? '填写内容将发送至 DeepSeek。' : '完整报告服务待接入，当前可使用简版报告。'}</p>
               {errors.length > 0 && <div role="alert" className="errors"><p>{errors[0]}</p>{errors.length > 1 && <details><summary>另有 {errors.length - 1} 项待填写</summary>{errors.slice(1).map((error, i) => <p key={i}>{error}</p>)}</details>}</div>}
@@ -241,8 +241,8 @@ export default function Home() {
         {data.demo && <p className="demo-report">【虚构演示数据】</p>}
         <div className="report-metrics"><span>证据完整性 <strong>{score.evidence?.toFixed(2)} <small>/ 5</small></strong></span><span>模型效果 <strong>{score.effect?.toFixed(2)} <small>/ 5</small></strong></span></div>
         <div className="report-body">{report.paragraphs.map((paragraph, i) => <p key={i}>{highlightedReportText(paragraph, (report.highlights || []).filter(h => h.paragraph === i).map(h => h.text))}</p>)}</div>
-        <details className="report-method"><summary>评分说明与评价方法 <ChevronDown size={16}/></summary><p>{scoreNotes(data) || '两项分数分别反映本次填报的报告覆盖情况与模型效果，按临床决策辅助评分表计算。'}</p><p>评述参考研究报告方法，计分沿用项目原表。</p><div>{reportReferences.map(reference => <a key={reference.url} href={reference.url} target="_blank" rel="noreferrer">{reference.title} <ArrowUpRight size={15}/></a>)}</div></details>
-        {source && <div className="report-source"><p>示例来源：<a href={source.url} target="_blank" rel="noreferrer">{source.title} · {source.journal} <ArrowUpRight size={16}/></a>{source.changed ? '（当前填写已修改）' : ''}</p></div>}
+        <details className="report-method"><summary>评分说明与评价方法 <ChevronDown size={16}/></summary><p>{scoreNotes(data) || '两项分数分别反映本次填报的报告覆盖情况与模型效果，按临床决策辅助评分表计算。'}</p><p>评述参考研究报告方法，计分沿用项目原表。</p><div>{reportReferences.map(reference => <a key={reference.url} href={reference.url} target="_blank" rel="noreferrer">{reference.title}</a>)}</div></details>
+        {source && <div className="report-source"><p>示例来源：<a href={source.url} target="_blank" rel="noreferrer">{source.title} · {source.journal}</a>{source.changed ? '（当前填写已修改）' : ''}</p></div>}
       </section>}
 
       <footer className="footer"><span>医学 AI 研究快速评估</span><span>临床决策辅助</span></footer>
