@@ -8,4 +8,6 @@
 | 北京大学医学部 | `public/assets/branding/pku-health-science-center.svg` | [医学部官网](https://www.bjmu.edu.cn/images/logo.svg) |
 | 北京大学健康医疗大数据国家研究院 | `public/assets/branding/nihds.png` | [研究院官网](https://www.nihds.pku.edu.cn/style/1740.png) |
 
-本地文件保留原始图形与比例。页面通过 CSS 灰度显示，与黑白版式保持一致；白色细节与透明背景均保留。资源随网页部署，浏览页面时无需从机构官网加载图片。图片地址采用 Vite 的站点基础路径，兼容 GitHub Pages 项目子路径。
+本地文件保留官网原始资源。页面通过正方形视窗仅显示组合标识左侧的图形，保留图形内部的铭文，不显示右侧的名称文字。图形保持原色、原比例、白色细节及透明背景，未重新绘制。机构全称保留在图片替代文本中，供屏幕阅读器识别。
+
+资源随网页部署，浏览页面时无需从机构官网加载图片。图片地址采用 Vite 的站点基础路径，兼容 GitHub Pages 项目子路径。
