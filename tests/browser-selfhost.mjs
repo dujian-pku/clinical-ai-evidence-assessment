@@ -30,7 +30,7 @@ try {
   assert.match(await page.locator('.score-number').nth(0).innerText(), /1.25/);
   assert.match(await page.locator('.score-number').nth(1).innerText(), /3.62/);
   const start = performance.now();
-  await page.getByRole('button', { name: '生成评估报告', exact: true }).click();
+  await page.getByRole('button', { name: '生成综合评估报告', exact: true }).click();
   assert.equal(await page.getByRole('button', { name: '正在生成报告…', exact: true }).isDisabled(), true);
   await page.screenshot({ path: new URL('demo-report-loading.png', output).pathname, fullPage: true });
   await page.waitForTimeout(1000);
@@ -53,25 +53,25 @@ try {
   assert.ok(exported.includes('演示报告 · DeepSeek 生成') && exported.includes('展示时间：'));
 
   // Switching the study during the delay cancels the previous report.
-  await page.getByRole('button', { name: '生成评估报告', exact: true }).click();
+  await page.getByRole('button', { name: '生成综合评估报告', exact: true }).click();
   await page.locator('.examples-picker > summary').click();
   await page.getByRole('button', { name: '口咽癌研究', exact: true }).click();
-  assert.equal(await page.getByRole('button', { name: '生成评估报告', exact: true }).isDisabled(), false);
+  assert.equal(await page.getByRole('button', { name: '生成综合评估报告', exact: true }).isDisabled(), false);
   await page.waitForTimeout(5200);
   assert.equal(await page.locator('#report').count(), 0);
-  await page.getByRole('button', { name: '生成评估报告', exact: true }).click();
+  await page.getByRole('button', { name: '生成综合评估报告', exact: true }).click();
   await page.locator('#report').waitFor({ timeout: 10000 });
   assert.match(await page.locator('.report-body').innerText(), /E3311/);
   assert.match(await page.locator('.report-body').innerText(), /0.86/);
   assert.equal(await page.locator('.report-highlight').count(), 4);
 
   // Edited evidence keeps its own scoring/brief report, without a stale narrative.
-  await page.getByRole('button', { name: '生成评估报告', exact: true }).click();
+  await page.getByRole('button', { name: '生成综合评估报告', exact: true }).click();
   await page.getByLabel('疾病领域', { exact: true }).fill('修改后的研究疾病');
-  assert.equal(await page.getByRole('button', { name: '生成评估报告', exact: true }).isDisabled(), false);
+  assert.equal(await page.getByRole('button', { name: '生成综合评估报告', exact: true }).isDisabled(), false);
   await page.waitForTimeout(5200);
   assert.equal(await page.locator('#report').count(), 0);
-  await page.getByRole('button', { name: '生成评估报告', exact: true }).click();
+  await page.getByRole('button', { name: '生成综合评估报告', exact: true }).click();
   assert.match(await page.getByRole('alert').innerText(), /重新载入一项研究示例/);
   await page.getByRole('button', { name: '生成简版报告', exact: true }).click();
   assert.match(await page.locator('.report-body').innerText(), /修改后的研究疾病/);

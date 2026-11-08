@@ -44,6 +44,7 @@ export default function Home() {
   const examplesRef = useRef<HTMLDetailsElement>(null);
   const score = calculate(data);
   const source = exampleSource(data);
+  const reportTitle = reportMode === DEMO_REPORT_MODE ? '综合评估报告' : '快速评估报告';
   const baseFilled = [data.studyId, data.aiType, data.scene, data.user, data.disease].filter(x => x.trim()).length;
   const metricReady = data.metric === '未报告' ? !data.metricValue.trim() : metrics.includes(data.metric as typeof metrics[number]) && score.numeric !== null;
   const effectFilled = Number(!!data.overall) + Number(!!data.patient) + Number(metricReady);
@@ -121,10 +122,10 @@ export default function Home() {
   }
   function download() {
     if (!report) return;
-    const content = '医学 AI 研究快速评估报告\n' + (reportMode === DEMO_REPORT_MODE ? '展示时间：' : '生成时间：') + createdAt + '（北京时间）\n规则版本：' + RULE_VERSION + '\n报告类型：' + reportMode + '\n' + (data.demo ? '【虚构演示数据】\n' : '') + '\n' + report.paragraphs.join('\n\n') + '\n\n证据完整性：' + score.evidence?.toFixed(2) + ' / 5；模型效果：' + score.effect?.toFixed(2) + ' / 5。\n' + scoreNotes(data) + '\n\n【填写记录】\n' + dimensions.map(d => d.name + '：' + data.states[d.key] + '；权重 ' + d.weight + '；得分 ' + (data.states[d.key] === '已报告' ? d.weight : 0)).join('\n') + '\n\n【研究者补充说明】\n' + (data.notes || '未填写');
+    const content = '医学 AI 研究' + reportTitle + '\n' + (reportMode === DEMO_REPORT_MODE ? '展示时间：' : '生成时间：') + createdAt + '（北京时间）\n规则版本：' + RULE_VERSION + '\n报告类型：' + reportMode + '\n' + (data.demo ? '【虚构演示数据】\n' : '') + '\n' + report.paragraphs.join('\n\n') + '\n\n证据完整性：' + score.evidence?.toFixed(2) + ' / 5；模型效果：' + score.effect?.toFixed(2) + ' / 5。\n' + scoreNotes(data) + '\n\n【填写记录】\n' + dimensions.map(d => d.name + '：' + data.states[d.key] + '；权重 ' + d.weight + '；得分 ' + (data.states[d.key] === '已报告' ? d.weight : 0)).join('\n') + '\n\n【研究者补充说明】\n' + (data.notes || '未填写');
     const citedContent = content + (source ? '\n\n【研究来源】\n' + sourceCitation(data) : '') + '\n\n【评价方法参考】\n' + reportReferences.map(reference => reference.title + '：' + reference.url).join('\n');
     const url = URL.createObjectURL(new Blob([citedContent], { type: 'text/plain;charset=utf-8' }));
-    const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'AI研究快速评估报告.txt'; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'AI研究' + reportTitle + '.txt'; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return <div className="page-shell">
     <header className="topbar">
@@ -136,7 +137,7 @@ export default function Home() {
       <nav className="topnav" aria-label="主导航">
         <a href="#assessment" className="nav-current">研究评估</a>
         <a href="#method" onClick={() => setRulesOpen(true)}>评分方法</a>
-        {report && <a href="#report">评估报告</a>}
+        {report && <a href="#report">{reportTitle}</a>}
       </nav>
     </header>
     <main className="workspace">
@@ -237,18 +238,18 @@ export default function Home() {
             </div>
             <details className="coverage" open><summary>维度得分 <ChevronDown size={17}/></summary><div>{dimensions.map(d => <div className="coverage-row" key={d.key}><span className={'coverage-dot ' + (data.states[d.key] === '已报告' ? 'is-reported' : data.states[d.key] ? 'is-filled' : '')}/><span>{d.name}</span><span>{data.states[d.key] ? data.states[d.key] === '已报告' ? d.weight.toFixed(2) : '0.00' : '—'}</span></div>)}</div></details>
             <div className="generate-area">
-              <button className="primary" onClick={generate} disabled={pending} aria-busy={pending}>{pending ? <LoaderCircle className="spin" size={19}/> : <FileText size={19}/>} {pending ? '正在生成报告…' : '生成评估报告'}</button>
+              <button className="primary" onClick={generate} disabled={pending} aria-busy={pending}>{pending ? <LoaderCircle className="spin" size={19}/> : <FileText size={19}/>} {pending ? '正在生成报告…' : '生成综合评估报告'}</button>
               <button className="secondary-report" onClick={localReport} disabled={pending}>生成简版报告</button>
               <p className="data-note" role="status">{pending ? '演示加载中，约 5 秒后展示。' : '演示模式 · 报告由 DeepSeek 生成。'}</p>
               {errors.length > 0 && <div role="alert" className="errors"><p>{errors[0]}</p>{errors.length > 1 && <details><summary>另有 {errors.length - 1} 项待填写</summary>{errors.slice(1).map((error, i) => <p key={i}>{error}</p>)}</details>}</div>}
             </div>
           </div>
-          {report && <a className="report-shortcut" href="#report"><Check size={18}/><span>报告已生成<small>查看本次评估报告</small></span><ArrowRight size={19}/></a>}
+          {report && <a className="report-shortcut" href="#report"><Check size={18}/><span>报告已生成<small>查看{reportTitle}</small></span><ArrowRight size={19}/></a>}
         </aside>
       </div>
 
       {report && <section className="report-panel" ref={reportRef} id="report">
-        <div className="report-header"><div><p className="eyebrow">ASSESSMENT REPORT</p><h2>快速评估报告</h2><p>{reportMode} · {reportMode === DEMO_REPORT_MODE ? '展示时间：' : ''}{createdAt}（北京时间）</p></div><button onClick={download}><ArrowDownToLine size={19}/> 导出 TXT</button></div>
+        <div className="report-header"><div><p className="eyebrow">ASSESSMENT REPORT</p><h2>{reportTitle}</h2><p>{reportMode} · {reportMode === DEMO_REPORT_MODE ? '展示时间：' : ''}{createdAt}（北京时间）</p></div><button onClick={download}><ArrowDownToLine size={19}/> 导出 TXT</button></div>
         {data.demo && <p className="demo-report">【虚构演示数据】</p>}
         <div className="report-metrics"><span>证据完整性 <strong>{score.evidence?.toFixed(2)} <small>/ 5</small></strong></span><span>模型效果 <strong>{score.effect?.toFixed(2)} <small>/ 5</small></strong></span></div>
         <div className="report-body">{report.paragraphs.map((paragraph, i) => <p key={i}>{highlightedReportText(paragraph, (report.highlights || []).filter(h => h.paragraph === i).map(h => h.text))}</p>)}</div>
