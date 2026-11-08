@@ -239,7 +239,7 @@ export default function Home() {
             <div className="generate-area">
               <button className="primary" onClick={generate} disabled={pending} aria-busy={pending}>{pending ? <LoaderCircle className="spin" size={19}/> : <FileText size={19}/>} {pending ? '正在生成报告…' : '生成评估报告'}</button>
               <button className="secondary-report" onClick={localReport} disabled={pending}>生成简版报告</button>
-              <p className="data-note" role="status">{pending ? '演示加载中，约 5 秒后展示。' : '演示模式 · 报告由 DeepSeek 预先生成。'}</p>
+              <p className="data-note" role="status">{pending ? '演示加载中，约 5 秒后展示。' : '演示模式 · 报告由 DeepSeek 生成。'}</p>
               {errors.length > 0 && <div role="alert" className="errors"><p>{errors[0]}</p>{errors.length > 1 && <details><summary>另有 {errors.length - 1} 项待填写</summary>{errors.slice(1).map((error, i) => <p key={i}>{error}</p>)}</details>}</div>}
             </div>
           </div>

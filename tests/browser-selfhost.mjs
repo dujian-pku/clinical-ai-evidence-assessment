@@ -41,7 +41,7 @@ try {
   assert.equal(await page.locator('.report-body > p').count(), 4);
   assert.equal(await page.locator('.report-highlight').count(), 5);
   assert.match(await page.locator('.report-body').innerText(), /0.9703/);
-  assert.match(await page.locator('.report-header').innerText(), /演示报告 · DeepSeek 预先生成/);
+  assert.match(await page.locator('.report-header').innerText(), /演示报告 · DeepSeek 生成/);
   await page.locator('#report').screenshot({ path: new URL('demo-report-complete.png', output).pathname });
   await page.getByRole('button', { name: '保存本机', exact: true }).click();
   const downloaded = page.waitForEvent('download');
@@ -50,7 +50,7 @@ try {
   let exported = '';
   for await (const chunk of stream) exported += chunk.toString();
   assert.ok(exported.includes('0.9703') && exported.includes('3.62 / 5'));
-  assert.ok(exported.includes('演示报告 · DeepSeek 预先生成') && exported.includes('展示时间：'));
+  assert.ok(exported.includes('演示报告 · DeepSeek 生成') && exported.includes('展示时间：'));
 
   // Switching the study during the delay cancels the previous report.
   await page.getByRole('button', { name: '生成评估报告', exact: true }).click();

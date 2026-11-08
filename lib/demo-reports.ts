@@ -2,7 +2,7 @@ import type { Assessment, Report } from './assessment.ts';
 import savedReports from './demo-reports.json' with { type: 'json' };
 
 export const DEMO_DELAY_MS = 5000;
-export const DEMO_REPORT_MODE = '演示报告 · DeepSeek 预先生成';
+export const DEMO_REPORT_MODE = '演示报告 · DeepSeek 生成';
 export const DEFAULT_DEMO_STUDY = '37029272';
 
 const reports = savedReports as Record<string, { provider: string; sourceFile: string; input: Assessment; report: Report }>;
