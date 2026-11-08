@@ -1,6 +1,8 @@
 # 医学 AI 研究快速评估
 
-适用于临床决策辅助场景。网页静态版本由 GitHub Pages 托管。面向中国大陆访问的正式服务器尚待确定，完整报告接口暂未接入。保留研究填写、确定性评分、真实研究示例、自然段评述、关键内容高亮、草稿保存和 TXT 导出。
+适用于临床决策辅助场景，当前为项目汇报演示版，由 GitHub Pages 托管。默认载入颅内出血研究；点击“生成评估报告”后显示约 5 秒加载状态，再展示此前由 DeepSeek 生成的完整报告。可切换至口咽癌研究查看对应报告。页面与 TXT 均标注“演示报告 · DeepSeek 预先生成”，时间表示本次展示时间。
+
+演示过程无需访问码或 API 密钥，不调用在线报告接口。完整报告与保存的研究输入逐项匹配；修改研究内容后可使用简版报告，重新载入原始示例可继续演示完整报告。填写内容变更时取消正在等待的演示，防止旧报告覆盖新记录。保留确定性评分、重点高亮、草稿保存和 TXT 导出。报告来源见 [演示报告说明](docs/demo-reports.md)。
 
 [在线工具](https://dujian-pku.github.io/clinical-ai-evidence-assessment/) · [GitHub 仓库](https://github.com/dujian-pku/clinical-ai-evidence-assessment)
 
@@ -19,10 +21,10 @@ pnpm build
 pnpm dev
 ```
 
-`VITE_REPORT_API_URL` 是报告接口的公开 URL，例如 `https://example.org/api/report`。`PAGES_BASE_PATH` 是 Pages 项目路径，例如 `/clinical-ai-evidence-assessment/`。两个配置都不包含密钥。
+`PAGES_BASE_PATH` 是 Pages 项目路径，例如 `/clinical-ai-evidence-assessment/`。演示版前端不使用报告接口配置。
 
 ## 服务器部署
-面向国内使用，可以把网页与报告接口部署到同一台 Linux 服务器；也可以保留 GitHub Pages 网页，单独部署接口。当前不使用 Sites 或用户自有 Cloudflare 服务。
+仓库保留独立 Node.js 报告接口，供后续接入。当前演示页面不调用该接口，也不需要服务器。以下命令可部署同源静态页面与接口；启用在线生成时需要另行连接前端交互。当前不使用 Sites 或用户自有 Cloudflare 服务。
 
 ```sh
 pnpm install --frozen-lockfile
@@ -33,9 +35,9 @@ cp deploy/environment.example .env.production
 pnpm start
 ```
 
-需要 Node.js 24。默认在 127.0.0.1:3000 提供网页和接口，正式使用由服务器反向代理提供 HTTPS。应用入口为 `scripts/start-server.mjs`。页面通过同源 `/api/report` 调用服务，`/health` 可检查进程状态。若只部署接口，可跳过 `build:server`，并把 GitHub Actions 变量 `REPORT_API_URL` 设为服务器的完整 HTTPS 接口地址。
+需要 Node.js 24。默认在 127.0.0.1:3000 提供网页和接口，正式使用由服务器反向代理提供 HTTPS。应用入口为 `scripts/start-server.mjs`。接口路径为 `/api/report`，`/health` 可检查进程状态；静态演示页面保持本地展示模式。
 
-秘密变量为 `DEEPSEEK_API_KEY` 和 `REPORT_ACCESS_CODE`。前者仅供服务端调用 DeepSeek，后者由使用者在网页填写，只保存在当前页面内存，不随草稿或 TXT 保存。`ALLOWED_ORIGINS` 填入网页的实际来源，例如 `https://dujian-pku.github.io` 或部署后的域名；多个来源使用英文逗号分隔。
+保留接口的秘密变量为 `DEEPSEEK_API_KEY` 和 `REPORT_ACCESS_CODE`。前者仅供服务端调用 DeepSeek，后者作为接口请求的访问凭证；当前演示页面不读取或使用这些变量。`ALLOWED_ORIGINS` 填入允许调用接口的来源；多个来源使用英文逗号分隔。
 
 接口校验来源、访问码、填写内容及请求大小，按单个实例内的连接 IP 记录限制每分钟 6 次调用。反向代理部署时，此计数按代理连接统计；更多并发需求可在反向代理层配置按访客 IP 的限流。账户费用按 DeepSeek 后台记录管理。
 
@@ -43,10 +45,9 @@ pnpm start
 
 1. 将本目录作为独立仓库推送到 `main`。
 2. 在仓库 Settings → Pages 中将 Source 设置为 GitHub Actions。
-3. 设置 Actions 仓库变量 `REPORT_API_URL`，填入 报告服务的完整 `/api/report` 地址。
-4. 运行 `Deploy GitHub Pages` 工作流。它会测试、构建并发布 `dist/`。
+3. 运行 `Deploy GitHub Pages` 工作流。它会测试、构建并发布 `dist/`。
 
-工作流只上传静态构建产物。原始 Excel、讨论记录、API 密钥和访问码均不随源码或网页发布。修改接口地址后重新运行工作流。
+工作流只上传静态构建产物，包括两项示例的预生成报告。原始 Excel、讨论记录、API 密钥和访问码均不随源码或网页发布。
 
 ## 评分与报告
 
@@ -55,6 +56,6 @@ pnpm start
 - 改善 5 分、等效 3 分、劣势 0 分。综合评价和患者报告结局未报告计 3 分，性能未报告计 0 分；未报告与等效的含义不同。
 - 不合并总分，不设置高价值阈值。
 - 真实示例为口咽癌包膜外侵犯预测（PMID:37087370）和颅内出血 CT 辅助诊断（PMID:37029272），出处和提取范围见页面及 `lib/research-examples.ts`。
-- 完整报告沿用 DeepSeek Flash 思考模式。服务端仅返回最终正文与高亮，正文约 500–800 汉字，通常 4–5 段。
+- 演示报告沿用此前保存的 DeepSeek 正文，两项研究各为 4 个自然段，分别保留 4 处和 5 处高亮。报告与其输入快照存放在 `lib/demo-reports.json`。
 
-本版本从同项目原网页迁移。源码不依赖 Sites；Node.js 服务可部署到单位服务器或云服务器。GitHub Pages 静态发布成功不代表完整报告接口已经上线。
+本版本从同项目原网页迁移，源码不依赖 Sites。当前报告演示完全由静态页面完成。

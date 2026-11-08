@@ -1,10 +1,10 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowDownToLine, ArrowLeft, ArrowRight, BookOpen, Check, ChevronDown, FileText, FolderOpen, LoaderCircle, RotateCcw, Save } from 'lucide-react';
 import { type Assessment, type Report, RULE_VERSION, calculate, decodeAssessment, dimensions, emptyAssessment, factualReport, metrics, outcomes, scenes, scoreNotes, statuses, users, validate } from '../lib/assessment';
 import { exampleSource, researchExample, researchExamples, sourceCitation } from '../lib/research-examples';
 import { reportReferences } from '../lib/report';
-import { reportEndpoint, reportServiceConfigured } from '../lib/report-client';
+import { DEFAULT_DEMO_STUDY, DEMO_DELAY_MS, DEMO_REPORT_MODE, preGeneratedReport } from '../lib/demo-reports';
 
 const storageKey = 'clinical-ai-assessment-v1';
 function reportText(text: string) {
@@ -24,11 +24,10 @@ function highlightedReportText(text: string, highlights: string[]) {
   return parts;
 }
 export default function Home() {
-  const [data, setData] = useState<Assessment>(emptyAssessment);
+  const [data, setData] = useState<Assessment>(() => researchExample(DEFAULT_DEMO_STUDY));
   const [report, setReport] = useState<Report | null>(null);
   const [reportMode, setReportMode] = useState('');
   const [pending, setPending] = useState(false);
-  const [accessCode, setAccessCode] = useState('');
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
   const [resetting, setResetting] = useState(false);
@@ -36,6 +35,10 @@ export default function Home() {
   const [createdAt, setCreatedAt] = useState('');
   const [activeStep, setActiveStep] = useState(0);
   const revision = useRef(0);
+  const generationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (generationTimer.current !== null) clearTimeout(generationTimer.current);
+  }, []);
   const reportRef = useRef<HTMLElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const examplesRef = useRef<HTMLDetailsElement>(null);
@@ -60,6 +63,9 @@ export default function Home() {
   }
   function change(next: Assessment) {
     revision.current++;
+    if (generationTimer.current !== null) clearTimeout(generationTimer.current);
+    generationTimer.current = null;
+    setPending(false);
     setData(next); setReport(null); setReportMode(''); setErrors([]); setMessage(''); setResetting(false);
   }
   function field(key: keyof Omit<Assessment, 'states'>, value: string) { change({ ...data, [key]: value }); }
@@ -73,22 +79,28 @@ export default function Home() {
     setCreatedAt(new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }));
     setTimeout(() => reportRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
   }
-  async function generate() {
+  function generate() {
+    if (pending) return;
     const issues = validate(data);
     if (issues.length) { presentErrors(issues); return; }
-    if (!accessCode.trim()) { setErrors(['请填写报告访问码。']); document.getElementById('report-access-code')?.focus(); return; }
+    const prepared = preGeneratedReport(data);
+    if (!prepared) {
+      setErrors(['请重新载入一项研究示例，查看对应的演示报告。']);
+      if (examplesRef.current) {
+        examplesRef.current.open = true;
+        examplesRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
     const current = revision.current;
     setPending(true); setErrors([]); setMessage('');
-    try {
-      const response = await fetch(reportEndpoint(), { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + accessCode.trim() }, body: JSON.stringify(data), signal: AbortSignal.timeout(90000) });
-      const result = await response.json() as { error?: string; report: Report; mode: string; notice?: string };
-      if (!response.ok) throw new Error(result.error || '报告生成失败，请稍后重试。');
+    setReport(null); setReportMode('');
+    generationTimer.current = setTimeout(() => {
+      generationTimer.current = null;
       if (current !== revision.current) return;
-      showReport(result.report, result.mode);
-      if (result.notice) setMessage(result.notice);
-    } catch (e) {
-      if (current === revision.current) setErrors([e instanceof Error && !['TimeoutError', 'AbortError'].includes(e.name) ? e.message : '请求超时，请重试。']);
-    } finally { setPending(false); }
+      setPending(false);
+      showReport(prepared, DEMO_REPORT_MODE);
+    }, DEMO_DELAY_MS);
   }
   function localReport() {
     const issues = validate(data);
@@ -109,7 +121,7 @@ export default function Home() {
   }
   function download() {
     if (!report) return;
-    const content = '医学 AI 研究快速评估报告\n生成时间：' + createdAt + '（北京时间）\n规则版本：' + RULE_VERSION + '\n报告类型：' + reportMode + '\n' + (data.demo ? '【虚构演示数据】\n' : '') + '\n' + report.paragraphs.join('\n\n') + '\n\n证据完整性：' + score.evidence?.toFixed(2) + ' / 5；模型效果：' + score.effect?.toFixed(2) + ' / 5。\n' + scoreNotes(data) + '\n\n【填写记录】\n' + dimensions.map(d => d.name + '：' + data.states[d.key] + '；权重 ' + d.weight + '；得分 ' + (data.states[d.key] === '已报告' ? d.weight : 0)).join('\n') + '\n\n【研究者补充说明】\n' + (data.notes || '未填写');
+    const content = '医学 AI 研究快速评估报告\n' + (reportMode === DEMO_REPORT_MODE ? '展示时间：' : '生成时间：') + createdAt + '（北京时间）\n规则版本：' + RULE_VERSION + '\n报告类型：' + reportMode + '\n' + (data.demo ? '【虚构演示数据】\n' : '') + '\n' + report.paragraphs.join('\n\n') + '\n\n证据完整性：' + score.evidence?.toFixed(2) + ' / 5；模型效果：' + score.effect?.toFixed(2) + ' / 5。\n' + scoreNotes(data) + '\n\n【填写记录】\n' + dimensions.map(d => d.name + '：' + data.states[d.key] + '；权重 ' + d.weight + '；得分 ' + (data.states[d.key] === '已报告' ? d.weight : 0)).join('\n') + '\n\n【研究者补充说明】\n' + (data.notes || '未填写');
     const citedContent = content + (source ? '\n\n【研究来源】\n' + sourceCitation(data) : '') + '\n\n【评价方法参考】\n' + reportReferences.map(reference => reference.title + '：' + reference.url).join('\n');
     const url = URL.createObjectURL(new Blob([citedContent], { type: 'text/plain;charset=utf-8' }));
     const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'AI研究快速评估报告.txt'; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -225,10 +237,9 @@ export default function Home() {
             </div>
             <details className="coverage" open><summary>维度得分 <ChevronDown size={17}/></summary><div>{dimensions.map(d => <div className="coverage-row" key={d.key}><span className={'coverage-dot ' + (data.states[d.key] === '已报告' ? 'is-reported' : data.states[d.key] ? 'is-filled' : '')}/><span>{d.name}</span><span>{data.states[d.key] ? data.states[d.key] === '已报告' ? d.weight.toFixed(2) : '0.00' : '—'}</span></div>)}</div></details>
             <div className="generate-area">
-              {reportServiceConfigured && <label className="report-access" htmlFor="report-access-code">报告访问码<input id="report-access-code" type="password" autoComplete="off" value={accessCode} onChange={event => setAccessCode(event.target.value)} placeholder="填写后生成完整报告" /></label>}
-              <button className="primary" onClick={generate} disabled={pending || !reportServiceConfigured}>{pending ? <LoaderCircle className="spin" size={19}/> : <FileText size={19}/>} {pending ? '正在生成报告…' : '生成评估报告'}</button>
+              <button className="primary" onClick={generate} disabled={pending} aria-busy={pending}>{pending ? <LoaderCircle className="spin" size={19}/> : <FileText size={19}/>} {pending ? '正在生成报告…' : '生成评估报告'}</button>
               <button className="secondary-report" onClick={localReport} disabled={pending}>生成简版报告</button>
-              <p className="data-note">{reportServiceConfigured ? '填写内容将发送至 DeepSeek。' : '完整报告服务待接入，当前可使用简版报告。'}</p>
+              <p className="data-note" role="status">{pending ? '演示加载中，约 5 秒后展示。' : '演示模式 · 报告由 DeepSeek 预先生成。'}</p>
               {errors.length > 0 && <div role="alert" className="errors"><p>{errors[0]}</p>{errors.length > 1 && <details><summary>另有 {errors.length - 1} 项待填写</summary>{errors.slice(1).map((error, i) => <p key={i}>{error}</p>)}</details>}</div>}
             </div>
           </div>
@@ -237,7 +248,7 @@ export default function Home() {
       </div>
 
       {report && <section className="report-panel" ref={reportRef} id="report">
-        <div className="report-header"><div><p className="eyebrow">ASSESSMENT REPORT</p><h2>快速评估报告</h2><p>{reportMode} · {createdAt}（北京时间）</p></div><button onClick={download}><ArrowDownToLine size={19}/> 导出 TXT</button></div>
+        <div className="report-header"><div><p className="eyebrow">ASSESSMENT REPORT</p><h2>快速评估报告</h2><p>{reportMode} · {reportMode === DEMO_REPORT_MODE ? '展示时间：' : ''}{createdAt}（北京时间）</p></div><button onClick={download}><ArrowDownToLine size={19}/> 导出 TXT</button></div>
         {data.demo && <p className="demo-report">【虚构演示数据】</p>}
         <div className="report-metrics"><span>证据完整性 <strong>{score.evidence?.toFixed(2)} <small>/ 5</small></strong></span><span>模型效果 <strong>{score.effect?.toFixed(2)} <small>/ 5</small></strong></span></div>
         <div className="report-body">{report.paragraphs.map((paragraph, i) => <p key={i}>{highlightedReportText(paragraph, (report.highlights || []).filter(h => h.paragraph === i).map(h => h.text))}</p>)}</div>
